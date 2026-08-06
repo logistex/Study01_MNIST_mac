@@ -27,7 +27,19 @@ open 손글씨인식.app         # 앱 번들로 실행 (독에 넣어 쓰는 �
 
 - **파이썬 3.14뿐이고 TensorFlow는 3.14용 배포판이 없다.** 그래서 Keras가 아니라 PyTorch(2.13)로 구현했다. Keras로 바꾸려면 파이썬 3.12나 3.13을 따로 설치해야 한다.
 - **onnx 패키지도 3.14용 휠이 없다.** free-threaded 빌드(`cp314t`)용만 있는데 이 맥의 파이썬은 GIL이 켜진 일반 빌드다. 그래서 웹 버전은 ONNX 대신 가중치를 직접 내보내는 방식을 쓴다.
-- **MNIST 자동 내려받기는 SSL 인증서 오류로 실패한다.** (`CERTIFICATE_VERIFY_FAILED`) 원본 `.gz` 4개를 `curl`로 `data/MNIST/raw/`에 직접 받아 두었고, `download=True`는 파일이 이미 있으면 건너뛴다. 데이터를 지웠다면 `https://ossci-datasets.s3.amazonaws.com/mnist/`에서 다시 받는다. 근본 해결은 `/Applications/Python 3.14/Install Certificates.command` 실행(관리자 권한 필요).
+- **MNIST 원본은 저장소에 없다.** 63MB라 `.gitignore`로 제외했다. 저장소를 새로 받았다면 아래 명령으로 먼저 데이터를 채워야 `train.py`와 `검증데이터만들기.py`가 돈다.
+
+  ```bash
+  mkdir -p desktop_version/data/MNIST/raw
+  cd desktop_version/data/MNIST/raw
+  for name in train-images-idx3-ubyte train-labels-idx1-ubyte t10k-images-idx3-ubyte t10k-labels-idx1-ubyte; do
+    curl -O "https://ossci-datasets.s3.amazonaws.com/mnist/$name.gz"
+  done
+  ```
+
+  `.gz` 4개만 받으면 된다. 압축을 푸는 것은 torchvision 이 알아서 한다.
+
+- **MNIST 자동 내려받기는 SSL 인증서 오류로 실패한다.** (`CERTIFICATE_VERIFY_FAILED`) 그래서 위처럼 `curl`로 직접 받는다. `download=True`는 파일이 이미 있으면 건너뛰므로, 받아 두기만 하면 코드를 고칠 필요가 없다. 근본 해결은 `/Applications/Python 3.14/Install Certificates.command` 실행(관리자 권한 필요).
 - 학습은 애플 실리콘 GPU(MPS)를 쓴다. 예측은 CPU로 한다.
 
 ## 구조

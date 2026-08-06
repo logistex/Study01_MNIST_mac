@@ -3,3 +3,6 @@ web_version/검증데이터.json
 
 # 토큰 같은 비밀 값. 절대 커밋하지 않는다.
 .env
+
+# MNIST 원본 63MB. 받는 방법은 desktop_version/CLAUDE.md 에 있다.
+desktop_version/data/
