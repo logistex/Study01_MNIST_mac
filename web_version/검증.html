@@ -1,0 +1,149 @@
+<!-- 2026-08-06 18:41 KST 생성 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>웹 버전 검증</title>
+<style>
+  body { font-family: -apple-system, "Apple SD Gothic Neo", sans-serif;
+         margin: 24px; line-height: 1.6; }
+  #결과 { white-space: pre-wrap; font-family: "SF Mono", Menlo, monospace;
+          background: #f6f6f6; padding: 16px; border-radius: 8px; }
+  .통과 { color: #1a7f37; font-weight: bold; }
+  .실패 { color: #c92a2a; font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>웹 버전 검증</h1>
+<p>파이썬이 만든 <code>검증데이터.json</code> 과 자바스크립트 결과를 대조한다.</p>
+<div id="결과">검증을 시작합니다...</div>
+
+<script type="module">
+import { 모델불러오기, 예측하기 } from "./모델.js";
+import { mnist형식으로변환, 밝기만뽑기, 정규화 } from "./전처리.js";
+
+const 결과칸 = document.getElementById("결과");
+const 줄들 = [];
+const 판정들 = [];
+
+function 다시그리기() {
+  결과칸.replaceChildren(...줄들.map((줄, 번호) => {
+    const 칸 = document.createElement("span");
+    if (줄.startsWith("통과")) 칸.className = "통과";
+    else if (줄.startsWith("실패")) 칸.className = "실패";
+    칸.textContent = 번호 === 0 ? 줄 : `\n${줄}`;
+    return 칸;
+  }));
+}
+
+function 적기(글) {
+  줄들.push(글);
+  다시그리기();
+}
+
+function 판정(이름, 통과, 설명) {
+  판정들.push(통과);
+  줄들.push(`${통과 ? "통과" : "실패"}  ${이름} — ${설명}`);
+  다시그리기();
+}
+
+/** data URL 그림을 캔버스에 그려 밝기 배열로 바꾼다. */
+function 그림을밝기로(그림, 크기) {
+  const 캔버스 = document.createElement("canvas");
+  캔버스.width = 크기;
+  캔버스.height = 크기;
+  const 붓 = 캔버스.getContext("2d", { willReadFrequently: true });
+  붓.drawImage(그림, 0, 0, 크기, 크기);
+  return 밝기만뽑기(붓.getImageData(0, 0, 크기, 크기));
+}
+
+function 그림불러오기(주소) {
+  return new Promise((성공, 실패) => {
+    const 그림 = new Image();
+    그림.onload = () => 성공(그림);
+    그림.onerror = () => 실패(new Error("그림을 불러오지 못했습니다."));
+    그림.src = 주소;
+  });
+}
+
+async function 검증하기() {
+  const 모델 = await 모델불러오기(".");
+  적기(`가중치 적재 완료 (평균 ${모델.평균}, 표준편차 ${모델.표준편차})`);
+
+  const 자료응답 = await fetch("./검증데이터.json");
+  if (!자료응답.ok) {
+    throw new Error(
+      `검증데이터.json 을 읽지 못했습니다 (${자료응답.status}). `
+      + `먼저 cd ../desktop_version && python3 검증데이터만들기.py 를 실행해 주세요.`
+    );
+  }
+  const 자료 = await 자료응답.json();
+  적기(`검증 표본 ${자료.항목.length}개 적재 완료`);
+  적기("");
+
+  let 순전파최대차이 = 0;
+  let 화소최대차이 = 0;
+  let 화소차이합 = 0;
+  let 화소개수 = 0;
+  let 전체맞힘 = 0;
+
+  for (const 하나 of 자료.항목) {
+    // (1) 순전파만 검사한다. 파이썬이 만든 28x28 을 그대로 입력으로 쓴다.
+    const 파이썬입력 = new Float32Array(784);
+    for (let 자리 = 0; 자리 < 784; 자리++) {
+      파이썬입력[자리] = (하나.전처리[자리] / 255 - 모델.평균) / 모델.표준편차;
+    }
+    const 파이썬입력확률 = 예측하기(파이썬입력, 모델);
+    for (let 숫자 = 0; 숫자 < 10; 숫자++) {
+      순전파최대차이 = Math.max(순전파최대차이,
+                              Math.abs(파이썬입력확률[숫자] - 하나.확률[숫자]));
+    }
+
+    // (2) 전체 파이프라인을 검사한다. 그림부터 자바스크립트로 통과시킨다.
+    const 그림 = await 그림불러오기(하나.그림);
+    const 밝기 = 그림을밝기로(그림, 자료.캔버스크기);
+    const 스물여덟 = mnist형식으로변환(밝기, 자료.캔버스크기, 자료.캔버스크기);
+    if (스물여덟 === null) {
+      판정("전처리", false, "그린 내용이 없다고 판정했다");
+      return;
+    }
+
+    for (let 자리 = 0; 자리 < 784; 자리++) {
+      const 차이 = Math.abs(스물여덟[자리] - 하나.전처리[자리]);
+      화소최대차이 = Math.max(화소최대차이, 차이);
+      화소차이합 += 차이;
+      화소개수++;
+    }
+
+    const 확률 = 예측하기(정규화(스물여덟, 모델.평균, 모델.표준편차), 모델);
+    let 고른숫자 = 0;
+    for (let 숫자 = 1; 숫자 < 10; 숫자++) {
+      if (확률[숫자] > 확률[고른숫자]) 고른숫자 = 숫자;
+    }
+    if (고른숫자 === 하나.라벨) 전체맞힘++;
+  }
+
+  const 전체정확도 = (전체맞힘 / 자료.항목.length) * 100;
+  적기(`전처리 화소 차이 — 평균 ${(화소차이합 / 화소개수).toFixed(2)}, `
+     + `최대 ${화소최대차이.toFixed(1)} (참고 지표)`);
+  적기(`전체 파이프라인 정확도 ${전체정확도.toFixed(1)}% `
+     + `(${전체맞힘}/${자료.항목.length})`);
+  적기("");
+
+  판정("순전파 일치", 순전파최대차이 <= 1e-4,
+       `파이썬 확률과의 최대 절대차 ${순전파최대차이.toExponential(2)} (기준 1e-4 이하)`);
+  판정("전체 파이프라인 정확도", 전체정확도 >= 97.0,
+       `${전체정확도.toFixed(1)}% (기준 97% 이상)`);
+
+  적기("");
+  적기(판정들.every(Boolean) ? "모든 검사를 통과했습니다." : "실패한 검사가 있습니다.");
+}
+
+검증하기().catch((오류) => {
+  적기("");
+  적기(`오류: ${오류.message}`);
+  console.error(오류);
+});
+</script>
+</body>
+</html>

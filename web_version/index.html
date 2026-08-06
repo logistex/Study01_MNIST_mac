@@ -1,0 +1,31 @@
+<!-- 2026-08-06 19:14 KST 생성 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>손글씨 숫자 인식</title>
+<link rel="stylesheet" href="스타일.css">
+</head>
+<body>
+<main>
+  <section class="왼쪽">
+    <p class="안내">이곳에 숫자를 크게 그려 주세요.</p>
+    <canvas id="그림판" width="280" height="280"></canvas>
+    <div class="단추틀">
+      <button id="지우기" type="button">지우기</button>
+      <button id="인식하기" type="button">인식하기</button>
+    </div>
+  </section>
+
+  <section class="오른쪽">
+    <h1>인식 결과</h1>
+    <div id="결과숫자">?</div>
+    <p id="확신도">모델을 불러오는 중입니다...</p>
+    <h2>가능성이 높은 후보</h2>
+    <div id="후보목록"></div>
+  </section>
+</main>
+<script type="module" src="앱.js"></script>
+</body>
+</html>
