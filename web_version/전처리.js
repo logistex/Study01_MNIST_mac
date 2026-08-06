@@ -54,11 +54,11 @@ function 면적평균축소(밝기, 너비, 높이, 새너비, 새높이) {
       let 누적 = 0;
       let 넓이합 = 0;
 
-      for (let 세로 = Math.floor(위); 세로 < Math.ceil(아래); 세로++) {
+      for (let 세로 = Math.floor(위); 세로 < Math.min(높이, Math.ceil(아래)); 세로++) {
         const 세로겹침 = Math.min(아래, 세로 + 1) - Math.max(위, 세로);
         if (세로겹침 <= 0) continue;
 
-        for (let 가로 = Math.floor(왼); 가로 < Math.ceil(오른); 가로++) {
+        for (let 가로 = Math.floor(왼); 가로 < Math.min(너비, Math.ceil(오른)); 가로++) {
           const 가로겹침 = Math.min(오른, 가로 + 1) - Math.max(왼, 가로);
           if (가로겹침 <= 0) continue;
 
