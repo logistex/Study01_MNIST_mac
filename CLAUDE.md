@@ -44,4 +44,5 @@ cd web_version && python3 -m http.server 8000           # 웹 (그 뒤 localhost
 ## 문서
 
 - `docs/superpowers/specs/2026-08-06-웹-데스크톱-버전-분리-design.md` — 두 버전으로 나눈 설계와 그 과정의 결정 기록
+- `docs/superpowers/plans/2026-08-06-웹-데스크톱-버전-분리.md` — 구현 계획서
 - `CLAUDE_전역.md` — 전역 지침 스냅샷

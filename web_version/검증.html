@@ -27,11 +27,13 @@ const 줄들 = [];
 const 판정들 = [];
 
 function 다시그리기() {
-  결과칸.innerHTML = 줄들
-    .map((줄) => 줄.startsWith("통과") ? `<span class="통과">${줄}</span>`
-              : 줄.startsWith("실패") ? `<span class="실패">${줄}</span>`
-              : 줄)
-    .join("\n");
+  결과칸.replaceChildren(...줄들.map((줄, 번호) => {
+    const 칸 = document.createElement("span");
+    if (줄.startsWith("통과")) 칸.className = "통과";
+    else if (줄.startsWith("실패")) 칸.className = "실패";
+    칸.textContent = 번호 === 0 ? 줄 : `\n${줄}`;
+    return 칸;
+  }));
 }
 
 function 적기(글) {
@@ -68,7 +70,14 @@ async function 검증하기() {
   const 모델 = await 모델불러오기(".");
   적기(`가중치 적재 완료 (평균 ${모델.평균}, 표준편차 ${모델.표준편차})`);
 
-  const 자료 = await (await fetch("./검증데이터.json")).json();
+  const 자료응답 = await fetch("./검증데이터.json");
+  if (!자료응답.ok) {
+    throw new Error(
+      `검증데이터.json 을 읽지 못했습니다 (${자료응답.status}). `
+      + `먼저 cd ../desktop_version && python3 검증데이터만들기.py 를 실행해 주세요.`
+    );
+  }
+  const 자료 = await 자료응답.json();
   적기(`검증 표본 ${자료.항목.length}개 적재 완료`);
   적기("");
 

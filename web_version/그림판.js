@@ -11,7 +11,7 @@
 
 export function 그림판만들기(캔버스, { 붓굵기 = 18, 그리기끝남 = () => {} } = {}) {
   const 붓 = 캔버스.getContext("2d", { willReadFrequently: true });
-  let 그리는중 = false;
+  let 그리는중포인터 = null;
   let 뭔가그렸나 = false;
 
   function 바탕칠하기() {
@@ -36,9 +36,14 @@ export function 그림판만들기(캔버스, { 붓굵기 = 18, 그리기끝남 
   바탕칠하기();
 
   캔버스.addEventListener("pointerdown", (사건) => {
+    if (사건.button !== 0) return;
+    // 이미 다른 손가락(포인터)으로 그리는 중이면 무시한다. 그러지 않으면
+    // 두 번째 손가락의 pointerdown 이 경로를 리셋해 두 손가락 사이에
+    // 선이 그어진다.
+    if (그리는중포인터 !== null) return;
     사건.preventDefault();
     캔버스.setPointerCapture(사건.pointerId);
-    그리는중 = true;
+    그리는중포인터 = 사건.pointerId;
     뭔가그렸나 = true;
 
     const { 가로, 세로 } = 좌표구하기(사건);
@@ -53,7 +58,7 @@ export function 그림판만들기(캔버스, { 붓굵기 = 18, 그리기끝남 
   });
 
   캔버스.addEventListener("pointermove", (사건) => {
-    if (!그리는중) return;
+    if (사건.pointerId !== 그리는중포인터) return;
     사건.preventDefault();
     const { 가로, 세로 } = 좌표구하기(사건);
     붓.lineTo(가로, 세로);
@@ -63,9 +68,9 @@ export function 그림판만들기(캔버스, { 붓굵기 = 18, 그리기끝남 
   });
 
   function 그리기멈춤(사건) {
-    if (!그리는중) return;
+    if (사건.pointerId !== 그리는중포인터) return;
     사건.preventDefault();
-    그리는중 = false;
+    그리는중포인터 = null;
     그리기끝남();
   }
 
