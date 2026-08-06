@@ -1,0 +1,91 @@
+<!-- 2026-08-06 18:41 KST 생성 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>웹 버전 검증</title>
+<style>
+  body { font-family: -apple-system, "Apple SD Gothic Neo", sans-serif;
+         margin: 24px; line-height: 1.6; }
+  #결과 { white-space: pre-wrap; font-family: "SF Mono", Menlo, monospace;
+          background: #f6f6f6; padding: 16px; border-radius: 8px; }
+  .통과 { color: #1a7f37; font-weight: bold; }
+  .실패 { color: #c92a2a; font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>웹 버전 검증</h1>
+<p>파이썬이 만든 <code>검증데이터.json</code> 과 자바스크립트 결과를 대조한다.</p>
+<div id="결과">검증을 시작합니다...</div>
+
+<script type="module">
+import { 모델불러오기, 예측하기 } from "./모델.js";
+
+const 결과칸 = document.getElementById("결과");
+const 줄들 = [];
+
+function 다시그리기() {
+  결과칸.innerHTML = 줄들
+    .map((줄) => 줄.startsWith("통과") ? `<span class="통과">${줄}</span>`
+              : 줄.startsWith("실패") ? `<span class="실패">${줄}</span>`
+              : 줄)
+    .join("\n");
+}
+
+function 적기(글) {
+  줄들.push(글);
+  다시그리기();
+}
+
+function 판정(이름, 통과, 설명) {
+  줄들.push(`${통과 ? "통과" : "실패"}  ${이름} — ${설명}`);
+  다시그리기();
+}
+
+async function 검증하기() {
+  const 모델 = await 모델불러오기(".");
+  적기(`가중치 적재 완료 (평균 ${모델.평균}, 표준편차 ${모델.표준편차})`);
+
+  const 자료 = await (await fetch("./검증데이터.json")).json();
+  적기(`검증 표본 ${자료.항목.length}개 적재 완료`);
+  적기("");
+
+  // 파이썬이 만든 28x28 전처리 결과를 그대로 입력으로 써서, 전처리 차이가
+  // 끼어들지 않은 순수한 순전파 일치도를 잰다.
+  let 최대차이 = 0;
+  let 맞힘 = 0;
+
+  for (const 하나 of 자료.항목) {
+    const 입력 = new Float32Array(784);
+    for (let 자리 = 0; 자리 < 784; 자리++) {
+      입력[자리] = (하나.전처리[자리] / 255 - 모델.평균) / 모델.표준편차;
+    }
+
+    const 확률 = 예측하기(입력, 모델);
+    for (let 숫자 = 0; 숫자 < 10; 숫자++) {
+      최대차이 = Math.max(최대차이, Math.abs(확률[숫자] - 하나.확률[숫자]));
+    }
+
+    let 고른숫자 = 0;
+    for (let 숫자 = 1; 숫자 < 10; 숫자++) {
+      if (확률[숫자] > 확률[고른숫자]) 고른숫자 = 숫자;
+    }
+    if (고른숫자 === 하나.라벨) 맞힘++;
+  }
+
+  const 정확도 = (맞힘 / 자료.항목.length) * 100;
+  적기(`자바스크립트 정확도 ${정확도.toFixed(1)}% (${맞힘}/${자료.항목.length})`);
+  적기("");
+
+  판정("순전파 일치", 최대차이 <= 1e-4,
+       `파이썬 확률과의 최대 절대차 ${최대차이.toExponential(2)} (기준 1e-4 이하)`);
+}
+
+검증하기().catch((오류) => {
+  적기("");
+  적기(`오류: ${오류.message}`);
+  console.error(오류);
+});
+</script>
+</body>
+</html>
