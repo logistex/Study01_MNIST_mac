@@ -14,6 +14,18 @@ open http://localhost:8000/
 
 **`index.html`을 더블클릭해서 열면 동작하지 않는다.** `앱.js`는 `<script type="module">`로 불러오는데, `file://`에서는 ES 모듈 자체가 CORS로 차단돼 `앱.js`가 실행조차 되지 않는다. `fetch` 차단이 아니라 모듈 로딩 자체가 막히는 것이다. 그래서 `.catch`도 돌지 않고 오류 메시지도 뜨지 않는다. 화면은 초기 문구인 "모델을 불러오는 중입니다..."에서 조용히 멈춘 채로 남는다. 오류는 브라우저 콘솔에만 남는다. 실제 Chrome에서는 이렇게 멈추는 것을 확인했다. 환경에 따라 다르게 동작하는 것을 관찰하기는 했지만 일반적인 `file://` 동작이라고 확인된 것은 아니므로, 어느 쪽이든 HTTP 서버로 여는 것만이 확실한 방법이다.
 
+## 배포
+
+`.github/workflows/pages.yml`이 `main`에 푸시될 때마다 **이 폴더만** GitHub Pages로 올린다. Pages의 "Deploy from a branch"는 소스 폴더로 루트나 `/docs`만 고를 수 있어 `web_version`을 직접 지정할 수 없기 때문이다. 덕분에 63MB짜리 MNIST 원본은 웹에 올라가지 않는다.
+
+저장소 설정에서 `Settings` → `Pages` → `Source`가 `GitHub Actions`여야 동작한다.
+
+주소는 `https://logistex.github.io/Study01_MNIST_mac/` 이다.
+
+**`검증데이터.json`은 배포본에 없다.** git 추적 대상이 아니라서다. 그래서 배포된 `검증.html`은 404 안내를 표시한다. 검증은 로컬에서 하고, 배포본에서 확인할 것은 `index.html`이다.
+
+**배포 ID는 커밋 SHA와 같다.** 같은 커밋으로 배포를 재시도하면 `Deployment cancelled.`로 즉시 취소된다. 배포가 실패해 다시 시도해야 한다면 워크플로만 재실행하지 말고 **새 커밋을 올려야 한다.**
+
 ## 검증
 
 ```bash
