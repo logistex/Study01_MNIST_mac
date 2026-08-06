@@ -1,0 +1,53 @@
+# 2026-08-06 21:03 KST 생성
+#
+# web_version 폴더만 GitHub Pages 로 배포한다.
+#
+# Pages 의 "Deploy from a branch" 는 소스 폴더로 루트나 /docs 만 고를 수 있어
+# web_version 을 직접 지정할 수 없다. 그래서 이 워크플로가 그 폴더만 골라
+# 올린다. 63MB 짜리 MNIST 원본(desktop_version/data)은 웹에 올라가지 않는다.
+#
+# 이 파일이 동작하려면 저장소 설정에서 Pages 소스를 "GitHub Actions" 로
+# 바꿔야 한다. (Settings > Pages > Build and deployment > Source)
+#
+# 작업 이름(job id)과 단계 이름(step id)은 영문으로 둔다. GitHub 이 영문,
+# 숫자, 밑줄, 붙임표만 허용하기 때문이다. 셸 변수 이름과 같은 이유의 예외다.
+
+name: 웹 버전 배포
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:      # 수동으로도 돌릴 수 있게 한다
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 배포가 겹치지 않도록 한 번에 하나만 돌린다.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: web_version 배포
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 저장소 내려받기
+        uses: actions/checkout@v4
+
+      - name: Pages 설정 읽기
+        uses: actions/configure-pages@v5
+
+      - name: web_version 폴더만 꾸리기
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web_version
+
+      - name: 배포하기
+        id: deployment
+        uses: actions/deploy-pages@v4
