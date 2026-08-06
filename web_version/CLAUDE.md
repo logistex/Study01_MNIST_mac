@@ -24,22 +24,43 @@ open http://localhost:8000/
 
 **`검증데이터.json`은 배포본에 없다.** git 추적 대상이 아니라서다. 그래서 배포된 `검증.html`은 404 안내를 표시한다. 검증은 로컬에서 하고, 배포본에서 확인할 것은 `index.html`이다.
 
-### 배포가 실패한 것처럼 보일 때
+### 배포가 실패할 때
 
-**워크플로 실행이 `failure`로 끝나도 사이트 주소를 먼저 열어 보라.** Pages 배포는 10분을 넘기는 일이 있는데 `actions/deploy-pages`의 제한 시간이 10분이다. 그래서 액션은 실패로 마감되지만 GitHub의 Pages 백엔드는 그 뒤에 배포를 완료한다. 실제로 이 프로젝트의 첫 배포가 그랬다. **실행이 실패로 표시된 그 커밋이 지금 서비스되고 있다.**
+**워크플로 실행이 `failure`로 끝나도 사이트 주소를 먼저 열어 보라.** 사이트는 살아 있을 수 있다. 다만 **살아 있다는 것이 최신이라는 뜻은 아니다.** 아래 "배포본이 최신인지 확인하는 법"으로 반드시 대조한다.
 
-**그러니 배포를 시작했으면 최소 15분은 건드리지 마라.** 여기서 조급하게 취소하고 재시도하면 상황이 나빠진다. 취소된 배포가 "진행 중" 상태로 남아 다음 배포를 막고, 뒤따르는 실행은 이런 오류로 실패한다.
+실패는 이런 모양이다. `actions/deploy-pages`가 배포를 만들면 상태가 `deployment_queued`에 머문 채 5초마다 폴링만 반복하다가, 10분(액션 기본값 `timeout: 600000`)이 지나면 **액션이 자기가 만든 배포를 취소하고** 실행을 실패로 마감한다.
+
+```
+Current status: deployment_queued     ← 10분 내내 이 상태
+##[error]Timeout reached, aborting!
+Canceling Pages deployment...
+Canceled deployment with ID 07b9cda...
+```
+
+**배포 ID는 커밋 SHA와 같다.** 그래서 같은 커밋으로 워크플로만 재실행하면 이미 취소된 배포와 같은 ID가 되어 `Deployment cancelled.`로 즉시 끝난다. 다시 시도해야 한다면 **새 커밋을 올려야 한다.**
+
+**실행이 도는 동안에는 손대지 않는다.** 조급하게 취소하고 재시도하면 취소된 배포가 "진행 중" 상태로 남아 다음 배포를 막고, 뒤따르는 실행은 이런 오류로 실패한다.
 
 ```
 Deployment request failed for <새 SHA> due to in progress deployment.
 Please cancel <막고 있는 SHA> first or wait for it to complete.
 ```
 
-이 상태에 빠졌다면 막고 있는 배포를 취소한 뒤 **한 번만** 실행하고 기다린다. 새 커밋을 올릴 필요는 없다.
+막고 있는 배포는 이렇게 취소한다.
 
 ```bash
 gh api -X POST "repos/logistex/Study01_MNIST_mac/pages/deployments/<막고 있는 SHA>/cancel"
 ```
+
+### 배포본이 최신인지 확인하는 법
+
+워크플로 실행 기록과 Pages 배포 상태를 믿지 말고 **배포본을 직접 받아 로컬과 대조한다.** 이 폴더에서 실행한다.
+
+```bash
+curl -s https://logistex.github.io/Study01_MNIST_mac/CLAUDE.md | diff - CLAUDE.md
+```
+
+이 대조가 왜 필요한지는 2026-08-06 의 일이 말해 준다. 그날 Pages 배포 8건이 **전부** `failure` 또는 `error` 였는데 사이트는 HTTP 200 으로 정상 동작했다. 확인해 보니 첫 커밋 `b5018a6` 의 내용이 서비스되고 있었고, **그 뒤 세 커밋은 하나도 반영되지 않았다.** 그 사이 바뀐 것이 문서뿐이라 앱 동작에는 차이가 없었고, 그래서 더 눈에 띄지 않았다.
 
 한글 파일명은 이 문제와 무관하다. ASCII 파일 하나만 올린 최소 테스트도 같은 증상이었고, 지금 배포본에서 `가중치.bin`, `모델.js` 를 비롯한 한글 파일명 자원이 전부 정상 서빙된다.
 
