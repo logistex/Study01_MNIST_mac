@@ -1,0 +1,14 @@
+#!/bin/sh
+# 손글씨 숫자 인식 앱 실행기.
+#
+# 이 파일의 위치:  손글씨인식.app/Contents/MacOS/launcher
+# 세 단계 위 폴더에 app.py 가 있다.
+#
+# 번들 안에 복사해 둔 Python 을 쓰기 때문에, 파인더의 Python Launcher
+# 환경설정과 상관없이 언제나 같은 방식으로 실행된다.
+# (셸 변수 이름은 한글을 쓸 수 없어 영문으로 둔다.)
+
+MACOS_DIR=$(cd "$(dirname "$0")" && pwd)
+PROJECT_DIR=$(cd "$MACOS_DIR/../../.." && pwd)
+
+exec "$MACOS_DIR/Python" "$PROJECT_DIR/app.py"
