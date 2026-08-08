@@ -58,6 +58,11 @@ cd web_version; py -m http.server 8000
 
 ## 문서
 
+- `참고자료/스킬-사용-현황과-설치-안내.md` — 이 프로젝트에 쓰인 스킬과 설치 방법
+- `참고자료/Claude CLI vs desktop app differences.md` — CLI 와 데스크톱 앱의 차이
+
+**아래는 저장소에 올리지 않는다** (`.gitignore` 로 제외). 검토 의견서, 인계 메모와 함께 `docs/` 안에 로컬로만 둔다. **`Download ZIP` 으로 받은 폴더에는 없다.**
+
 - `docs/superpowers/specs/2026-08-06-웹-데스크톱-버전-분리-design.md` — 두 버전으로 나눈 설계와 그 과정의 결정 기록
 - `docs/superpowers/plans/2026-08-06-웹-데스크톱-버전-분리.md` — 구현 계획서
 - `CLAUDE_전역.md` — 전역 지침 스냅샷
