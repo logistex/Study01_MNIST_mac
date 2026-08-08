@@ -10,12 +10,21 @@ MNIST 손글씨 숫자 인식의 맥용 데스크톱 버전이다. CNN을 학습
 
 ```bash
 cd desktop_version        # train.py 가 상대 경로를 쓰므로 이 폴더 안에서 실행한다
-python3 train.py          # 학습 후 mnist_cnn.pt 저장 (5회차, MPS 사용, 수 분 소요)
+python3 train.py          # 학습 후 mnist_cnn.pt 저장 (5회차, MPS 사용, 1분 안팎)
 python3 app.py            # 인식 앱 실행
 python3 가중치내보내기.py     # 웹 버전이 쓸 가중치.bin, 가중치정보.json 생성
 python3 검증데이터만들기.py   # 웹 버전 검증용 정답 데이터 생성
 open 손글씨인식.app         # 앱 번들로 실행 (독에 넣어 쓰는 방식)
 ```
+
+**학습 시간은 실측했다** (2026-08-08, MacBook Air M2 16GB, MNIST 데이터가 이미 있는 상태).
+
+| 조건 | 5회차 소요 | 테스트 정확도 |
+|---|---|---|
+| MPS (애플 실리콘 GPU) | **50초** | 98.95% |
+| CPU 만 사용 | **1분 30초** | 99.12% |
+
+처음 실행할 때는 MNIST 원본 약 11MB를 내려받는 시간이 더해진다. **"수 분 걸린다"는 앞 판의 서술은 실측과 달라 고쳤다.**
 
 `train.py`는 데이터 경로를 `root="data"`라는 상대 경로로 쓴다. 그래서 프로젝트 루트에서 `python3 desktop_version/train.py`로 실행하면 데이터를 찾지 못한다. **반드시 이 폴더로 들어가서 실행한다.** 새로 만든 스크립트 둘은 `Path(__file__)` 기준 절대 경로를 쓰므로 어디서 실행해도 된다.
 
