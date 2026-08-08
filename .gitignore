@@ -6,3 +6,7 @@ web_version/검증데이터.json
 
 # MNIST 원본 63MB. 받는 방법은 desktop_version/CLAUDE.md 에 있다.
 desktop_version/data/
+
+# 노션 노트에 넣을 가림 처리 그림 20장(5.6MB). 학생이 받는 ZIP 에 섞이지 않게 뺀다.
+# 백업은 Synology Drive 가 한다. 저장소에도 남기려면 이 줄을 지운다.
+docs/노션-가림처리-그림/
