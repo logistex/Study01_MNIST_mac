@@ -32,7 +32,22 @@ cd desktop_version && python3 app.py                    # 데스크톱
 cd web_version && python3 -m http.server 8000           # 웹 (그 뒤 localhost:8000 접속)
 ```
 
+**윈도우에서는 `python3` 를 `py` 로 바꿔 쓴다.** 이 문서의 명령은 전부 맥 기준이다.
+
+| 명령 | 맥 | 윈도우 |
+|---|---|---|
+| `python3` | 정상 | 대개 **마이크로소프트 스토어가 열린다** |
+| `python` | 없음 (요즘 맥은 아예 없다) | 정상 |
+| `py` | 없음 | **정상. 권장** |
+
+```powershell
+cd desktop_version; py app.py
+cd web_version; py -m http.server 8000
+```
+
 웹 버전은 `index.html` 더블클릭으로 열리지 않는다. HTTP 서버가 필요하다.
+
+**데스크톱 버전은 `torch` 와 `pillow` 가 필요하다**(`pip install torch pillow`). `torch` 는 `pillow` 를 끌고 오지 않는데 `app.py` 가 `PIL` 을 쓰므로 따로 깔아야 한다. 다시 학습까지 하려면 `pip install torch torchvision` 이다(`pillow` 가 딸려 온다). **웹 버전은 필요한 것이 없다.**
 
 ## 공통 규칙
 

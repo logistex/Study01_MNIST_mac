@@ -12,6 +12,16 @@ python3 -m http.server 8000
 open http://localhost:8000/
 ```
 
+**윈도우에서는 `python3` 대신 `py` 를 쓴다.** 맥의 `python3` 를 윈도우에서 그대로 치면 대개 마이크로소프트 스토어가 열린다. 브라우저를 여는 명령도 다르다.
+
+```powershell
+cd web_version
+py -m http.server 8000
+start http://localhost:8000/
+```
+
+**이 폴더는 파이썬을 쓰지 않는다.** 위 명령은 정적 파일을 내려 줄 HTTP 서버가 필요해서 파이썬에 딸려 오는 것을 쓸 뿐이다. 다른 서버를 써도 된다.
+
 **`index.html`을 더블클릭해서 열면 동작하지 않는다.** `앱.js`는 `<script type="module">`로 불러오는데, `file://`에서는 ES 모듈 자체가 CORS로 차단돼 `앱.js`가 실행조차 되지 않는다. `fetch` 차단이 아니라 모듈 로딩 자체가 막히는 것이다. 그래서 `.catch`도 돌지 않고 오류 메시지도 뜨지 않는다. 화면은 초기 문구인 "모델을 불러오는 중입니다..."에서 조용히 멈춘 채로 남는다. 오류는 브라우저 콘솔에만 남는다. 실제 Chrome에서는 이렇게 멈추는 것을 확인했다. 환경에 따라 다르게 동작하는 것을 관찰하기는 했지만 일반적인 `file://` 동작이라고 확인된 것은 아니므로, 어느 쪽이든 HTTP 서버로 여는 것만이 확실한 방법이다.
 
 ## 배포
@@ -73,6 +83,16 @@ cd ../desktop_version && python3 검증데이터만들기.py   # 정답 데이�
 cd ../web_version && python3 -m http.server 8000
 open http://localhost:8000/검증.html
 ```
+
+윈도우라면 `python3` 대신 `py`, `open` 대신 `start` 를 쓴다.
+
+```powershell
+cd ..\desktop_version; py 검증데이터만들기.py
+cd ..\web_version; py -m http.server 8000
+start http://localhost:8000/검증.html
+```
+
+`검증데이터만들기.py` 는 `torch` 와 `torchvision` 이 있어야 돈다.
 
 검사 두 가지가 모두 통과해야 한다.
 

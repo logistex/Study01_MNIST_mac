@@ -8,6 +8,8 @@ MNIST 손글씨 숫자 인식의 맥용 데스크톱 버전이다. CNN을 학습
 
 ## 명령
 
+**이 문서의 명령은 전부 맥 기준이다.** MPS, `손글씨인식.app`, `codesign` 처럼 맥에만 있는 것을 다루기 때문이다. 윈도우에서는 `python3` 를 `py` 로 바꿔 읽고, 실행 방법은 루트의 [README.md](../README.md) 를 본다.
+
 ```bash
 cd desktop_version        # train.py 가 상대 경로를 쓰므로 이 폴더 안에서 실행한다
 python3 train.py          # 학습 후 mnist_cnn.pt 저장 (5회차, MPS 사용, 1분 안팎)
